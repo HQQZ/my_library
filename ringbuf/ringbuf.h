@@ -4,12 +4,13 @@
 #include "main.h"
 #include <stdlib.h>
 
-//#define DYNAMIC_MALLOC
+// #define DYNAMIC_MALLOC
 
 #ifdef DYNAMIC_MALLOC
 #define MALLOC  malloc
 #define FREE    free
 #else
+#define RINGBUF_HEAD    10
 #define RINGBUF_SIZE    1000
 #endif
 

@@ -2,7 +2,9 @@
 #include <string.h>
 
 #ifndef DYNAMIC_MALLOC
-static ringbuf_t rb_head;
+static size_t head_sum = 0;
+static ringbuf_t rb_head[RINGBUF_HEAD];
+static size_t buff_sum = 0;
 static uint8_t rb_buff[RINGBUF_SIZE];
 #endif
 
@@ -17,7 +19,10 @@ ringbuf_t * ringbuf_new(size_t length)
     #ifdef DYNAMIC_MALLOC
     ringbuf_t *rb = MALLOC(sizeof(struct ringbuf_s));
     #else
-    ringbuf_t *rb = &rb_head;
+    if(head_sum > RINGBUF_HEAD)
+        return NULL;
+    ringbuf_t *rb = rb_head + head_sum;
+    head_sum++;
     #endif
     if(rb)
     {
@@ -25,7 +30,10 @@ ringbuf_t * ringbuf_new(size_t length)
         #ifdef DYNAMIC_MALLOC
         rb->buf = MALLOC(rb->size);
         #else
-        rb->buf = rb_buff;
+        if((length + buff_sum) > RINGBUF_SIZE)
+            return NULL;
+        rb->buf = rb_buff + buff_sum;
+        buff_sum += rb->size;
         #endif
         if (rb->buf)
             ringbuf_reset(rb);
@@ -33,7 +41,7 @@ ringbuf_t * ringbuf_new(size_t length)
             #ifdef DYNAMIC_MALLOC
             free(rb);
             #endif
-            return 0;
+            return NULL;
         }
     }
     return rb;
